@@ -58,6 +58,10 @@
   :after evil
   :init
   (evil-collection-init))
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (recentf-mode 1)
@@ -365,12 +369,14 @@
  ; (setq lsp-ui-doc-enable t)
  ; (setq lsp-lens-enable t)
   )
+(use-package kotlin-mode
+  :ensure t
+  :hook (kotlin-mode . lsp))
 
 ;; debug
 (use-package dap-mode
   :hook (lsp-mode . dap-mode)
 )
-
 
 
 (use-package company
@@ -467,3 +473,13 @@
 	dashboard-startup-banner (expand-file-name "img/logo.gif" user-emacs-directory)
 	dashboard-center-content t
 	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name))
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
+(use-package restclient
+  :ensure t
+  :mode ("\\.http\\'"))
