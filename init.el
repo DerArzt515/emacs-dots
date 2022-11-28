@@ -32,7 +32,17 @@
 
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 100)
 
+;; always ask y or n rather than yes or no
+(defalias 'yes-or-no-p 'y-or-n-p)
+
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(add-hook 'prog-mode 'electric-pair-mode)
+
+(require 'ansi-color)
+(defun arzt/ansi-colorize-buffer ()
+  (let ((buffer-read-only nil))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'arzt/ansi-colorize-buffer)
 
 (defun arzt/evil-hook ()
   (dolist (mode '(custom-mode
@@ -283,11 +293,20 @@
   (windmove-down)
   (vterm))
 
+(defun keymap-symbol (keymap)
+  "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
+  (catch 'gotit
+    (mapatoms (lambda (sym)
+                (and (boundp sym)
+                     (eq (symbol-value sym) keymap)
+                     (not (eq sym 'keymap))
+                     (throw 'gotit sym))))))
+
 (use-package general
   :config
   (general-evil-setup t)
   (general-create-definer arzt/leader-keys
-    :keymaps '(normal insert visual emacs)
+    :keymaps '(normal insert visual emacs treemacs-mode-map)
     :prefix "SPC"
     :global-prefix "C-SPC")
   (arzt/leader-keys
@@ -321,16 +340,28 @@
 	"pa" '(projectile-add-known-project :which-key "add project")
 	"pd" '(projectile-add-known-project :which-key "add project")
 	"pf" '(counsel-projectile :which-key "find file")
-   "l" '(:ignore t :which-key "lsp")
-	"lf" '(apheleia-format-buffer :which-key "format buffer")
-	"ld" '(:ignore t :which-key "lsp")
-	    "ldd" '(lsp-ui-doc-glance :which-key "focus doc")
-	    "ldD" '(lsp-ui-doc-focus-frame :which-key "focus doc")
+	"pc" '(projectile-compile-project :which-key "build")
+	"pr" '(projectile-run-project :which-key "run")
+	"pt" '(:ignore t :which-key "tests")
+	    "ptt" '(projectile-test-project :which-key "test")
+
+   ;; "l" '(:ignore t :which-key "lsp")
+   ;; 	"lf" '(apheleia-format-buffer :which-key "format buffer")
+   ;; 	"le" '(lsp-treemacs-errors-list :which-key "show errors")
+   ;; 	"lr" '(lsp-rename :which-key "rename")
+   ;; 	"ld" '(:ignore t :which-key "lsp")
+   ;; 	    "ldd" '(lsp-ui-doc-glance :which-key "focus doc")
+   ;; 	    "ldD" '(lsp-ui-doc-focus-frame :which-key "focus doc")
    "o" '(:ignore t :which-key "open")
 	"of" '(treemacs t :which-key "open file drawer")
 	"oT" '(vterm t :which-key "open term here")
 	"ot" '(arzt/open-term :which-key "open term below")
    "/" '(evilnc-comment-or-uncomment-lines :which-key "comment line(s)")
+   "d" '(:ignore t :which-key "debugger")
+	"db" '(:ignore t :which-key "breakpoints")
+	    "dba" '(dap-breakpoint-add t :which-key "add")
+	    "dbd" '(dap-breakpoint-delete t :which-key "delete")
+	"dd" '(dap-debug t :which-key "run")
   ))
 
 (use-package hydra)
@@ -406,6 +437,16 @@
   :config
   (define-derived-mode typescriptreact-mode typescript-mode "TypeScript TSX")
   (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
+  (arzt/leader-keys
+
+   "l" '(:ignore t :which-key "lsp")
+	"lf" '(apheleia-format-buffer :which-key "format buffer")
+	"le" '(lsp-treemacs-errors-list :which-key "show errors")
+	"lr" '(lsp-rename :which-key "rename")
+	"ld" '(:ignore t :which-key "lsp")
+	    "ldd" '(lsp-ui-doc-glance :which-key "focus doc")
+	    "ldD" '(lsp-ui-doc-focus-frame :which-key "focus doc")
+   )
   ;; by default, typescript-mode is mapped to the treesitter typescript parser
   ;; use our derived mode to map both .tsx AND .ts -> typescriptreact-mode -> treesitter tsx
   (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
@@ -470,7 +511,6 @@
   (setq dashboard-items '((recents . 5)
 			  (bookmarks . 5)
 			  (projects . 5))
-	dashboard-startup-banner (expand-file-name "img/logo.gif" user-emacs-directory)
 	dashboard-center-content t
 	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name))
 
