@@ -426,6 +426,8 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
+(electric-pair-mode t)
+(add-hook 'c-mode-hook 'lsp)
 
 (use-package typescript-mode
   :after tree-sitter
