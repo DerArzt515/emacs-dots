@@ -30,7 +30,7 @@
 (set-fringe-mode 10)
 (setq use-dialog-box nil)
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 100)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 150)
 
 ;; always ask y or n rather than yes or no
 (defalias 'yes-or-no-p 'y-or-n-p)
